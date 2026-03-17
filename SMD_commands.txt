@@ -40,17 +40,14 @@ gmx grompp -f EM.mdp -c box_sol_ion.gro -p topol.top -o EM.tpr
 gmx mdrun -v -deffnm EM
 
 -------------------------------Now make index files------------------------------
- 
 gmx make_ndx -f LIG.gro -o index_LIG.ndx
 	 > 0 & ! a H*
  	 > q
 
 gmx genrestr -f LIG.gro -n index_LIG.ndx -o posre_LIG.itp -fc 1000 1000 1000
 	> select group "3"
-	
-Now, open topol.top file
 
-	at the end of the document 
+///  Now, open topol.top file and at the end of the document 
 
 	after 
 		"; Include Position restraint file
@@ -58,9 +55,7 @@ Now, open topol.top file
 		#include "posre.itp"
 		#endif
 
-		"Here"
-
-	add this 
+	add this   /// 
 
 		; Ligand position restraints
 		#ifdef POSRES
@@ -70,110 +65,48 @@ Now, open topol.top file
 ---------------------Again, Make other Index file for System----------------------
 
 gmx make_ndx -f EM.gro -o index.ndx
-	
 	> 1 | 13
 	> q
 
 gmx grompp -f NVT.mdp -c EM.gro -r EM.gro -p topol.top -n index.ndx -maxwarn 2 -o NVT.tpr
-	
 gmx mdrun -deffnm NVT -v
 
 gmx grompp -f NPT.mdp -c NVT.gro -r NVT.gro -p topol.top -n index.ndx -maxwarn 2 -o NPT.tpr
-	
 gmx mdrun -deffnm NPT -v
 
 gmx grompp -f MD.mdp -c NPT.gro -t NPT.cpt -p topol.top -n index.ndx -maxwarn 2 -o MD.tpr
-
 gmx mdrun -deffnm MD -v
 
----------------CURRENT GONE---------------------------------------
-gmx mdrun -s MD.tpr -cpi MD.cpt -deffnm MD -append -v
-
-
-
-
-
------------------------centering for SMD (prot-lig)----------------------------
-gmx trjconv -s MD.tpr -f MD.xtc -o MD_center.xtc -center -pbc mol -ur compact -n index_p_l.ndx
-
-gmx trjconv -s smd_pull.tpr -f smd_pull.xtc -o smd_pull_center.xtc -center -pbc mol -ur compact -n index_RES.ndx
-
-====> group for centering > 21
-====>Select group for output > 0
-
---------------extracting last snapshot---------
 gmx trjconv -s MD.tpr -f MD.xtc -o SMD.gro -dump 10000
 ====> Select group for output > 0 
 
-gmx editconf -f SMD.gro -o box.gro -box 18 -bt cubic        
-
-gmx solvate -cp box.gro -cs spc216.gro -p topol.top -o box_sol_smd.gro
-
-///   before generating the next topology file make continuous sol in topol.top and then open box_sol_smd.gro => select all the SOL residue below NA and CL and move before them    ///
-
-_______________________________________________________________________________
-gmx grompp -f ions.mdp -c box_sol_smd.gro -p topol.top -o ION_smd.tpr 
-
-gmx genion -s ION_smd.tpr -p topol.top -conc 0.1 -neutral -o box_sol_ion_smd.gro
-17
-
-gmx grompp -f EM.mdp -c box_sol_ion_smd.gro -p topol.top -o EM_smd.tpr
-
-gmx mdrun -v -deffnm EM_smd
-
-gmx make_ndx -f EM_smd.tpr -o index_RES.ndx
-         > r 553 | r 555 | r 618 | r 691 | r 759 | r 760 | r 761 
-	 > name 21 CustomRes
-	 > q
-______________________________________________________________
-
-Again, Make other Index file for System 
-
-gmx make_ndx -f EM_smd.tpr -n index_RES.ndx -o index_res_lig.ndx
-	
-	> 21 | 13
-	> q
-
-gmx grompp -f NVT.mdp -c EM_smd.gro -r EM_smd.gro -p topol.top -n index_res_lig.ndx -maxwarn 2 -o NVT.tpr
-	
-gmx mdrun -deffnm NVT -v
-
-gmx grompp -f NPT.mdp -c NVT.gro -r NVT.gro -p topol.top -n index_res_lig.ndx -o NPT.tpr
-	
-gmx mdrun -deffnm NPT -v
-
-gmx grompp -f smd_pull.mdp -c NPT.gro -t NPT.cpt -p topol.top -r EM_smd.gro -n index_res_lig.ndx -o smd_pull.tpr
-
-gmx mdrun -deffnm smd_pull -v
+gmx grompp -f smd.mdp -c SMD.gro -t MD.cpt -p topol.top -r MD.gro -n index.ndx -o smd.tpr
+gmx mdrun -deffnm smd -v
 
 
 __________________Recentering the trajectory____________
-gmx trjconv -s smd_pull.tpr -f smd_pull.xtc -o smd_pull_center.xtc -center -pbc mol -ur compact
+gmx trjconv -s smd.tpr -f smd.xtc -o smd_center.xtc -center -pbc mol -ur compact
 #Choose "Protein" for centering and "System" for output.
 
 
 __________Extract Snapshots___________
-gmx trjconv -s smd_pull.tpr -f smd_pull_new.xtc -n index.ndx -o lig_13_1500ps.pdb -dump 1500
+gmx trjconv -s smd.tpr -f smd_center.xtc -n index.ndx -o frame.pdb -dump 1000
 
 _________________H-bonds_________________________
-gmx hbond -f smd_pull_center.xtc -s smd_pull.tpr -n index_res_lig.ndx -num hbonds.xvg
-
--r > 21 (customRes)
-
+gmx hbond -f smd_center.xtc -s smd.tpr -n index_res_lig.ndx -num hbonds.xvg
+-r > 1 (Protein)
 -t > 13 (LIG)
 
-
 _______________________IE For total_________________________
+gmx grompp -f md_IE_total.mdp -c MD.gro -t MD.cpt -p topol.top -r MD.gro -n index.ndx -o md_IE_total.tpr
 
-gmx grompp -f md_IE_total.mdp -c NPT.gro -t NPT.cpt -p topol.top -r EM_smd.gro -n index_res_lig.ndx -o md_IE_total.tpr
-
-gmx mdrun -deffnm md_IE_total -rerun smd_pull_center.xtc -nb cpu
+gmx mdrun -deffnm md_IE_total -rerun smd_center.xtc -nb cpu
 
 gmx energy -f md_IE_total.edr -o IE_total.xvg
 
 
-_____________________________________________________
-gmx make_ndx -f EM_smd.tpr -n index_res_lig.ndx -o index_energygrps.ndx
+_____________________Individual Residues_______________________
+gmx make_ndx -f MD.tpr -n index.ndx -o index_energygrps.ndx
 
 > r 553 
   name 23 R553
@@ -199,11 +132,7 @@ gmx make_ndx -f EM_smd.tpr -n index_res_lig.ndx -o index_energygrps.ndx
 > q
 
 
-
-___________Individual__________________________________________
-
-
-gmx grompp -f md_IE.mdp -c NPT.gro -t NPT.cpt -p topol.top -r EM_smd.gro -n index_energygrps.ndx -o md_IE.tpr
+gmx grompp -f md_IE.mdp -c MD.gro -t MD.cpt -p topol.top -r MD.gro -n index_energygrps.ndx -o md_IE.tpr
 
 gmx mdrun -deffnm md_IE -rerun smd_pull.xtc -nb cpu
 
@@ -212,6 +141,10 @@ gmx energy -f md_IE.edr -o IE_individual.xvg
 
 
 
+
+------------------CURRENT GONE MD----------------------
+gmx mdrun -s MD.tpr -cpi MD.cpt -deffnm MD -append -v
+
 ---------------CURRENT GONE SMD---------------------------------------
-gmx mdrun -s smd_pull.tpr -cpi smd_pull.cpt -deffnm smd_pull -pf smd_pull_pullf.xvg -px smd_pull_pullx.xvg -append -v
+gmx mdrun -s smd.tpr -cpi smd.cpt -deffnm smd -pf smd_pullf.xvg -px smd_pullx.xvg -append -v
 

@@ -1,0 +1,23 @@
+# Here 2 CV (fps.lp & cn) are selected for FM
+
+WHOLEMOLECULES ENTITY0=1-10600 ENTITY1=10601-10861
+
+# All are selected from index file
+prot: GROUP NDX_FILE=index.ndx NDX_GROUP=heavy_Chain_A
+lig_atoms: GROUP NDX_FILE=index.ndx NDX_GROUP=heavy_Chain_B
+lig: COM ATOMS=lit_atoms
+
+cn: COORDINATION GROUPA=prot GROUPB=lig_atoms R_0=0.3 NLIST NL_CUTOFF=0.5 NL_STRIDE=100 
+
+# Anchor was defined just to solve pbc issue of unbound ligand
+fps: FUNNEL_PS LIGAND=lig REFERENCE=ref.pdb ANCHOR=8661 POINTS=10.353,8.435,7.372,11.5661,8.514,6.693
+
+FUNNEL ARG=fps.lp,fps.ld ZCC=6.0 ALPHA=0.47 RCYL=0.3 MINS=-0.2 MAXS=6.7 KAPPA=55000 NBINS=500 NBINZ=500 FILE=BIAS LABEL=funnel
+
+# Sigma should be selected from a unbiased metad run and 1/3 of SD. 
+METAD ARG=fps.lp,cn SIGMA=0.02,1 HEIGHT=1.0 PACE=100 TEMP=298 BIASFACTOR=20 GRID_MIN=-0.3,0 GRID_MAX=6.8,110 LABEL=metad
+
+LOWER_WALLS ARG=fps.lp AT=0 KAPPA=55000 EXP=2 OFFSET=0 LABEL=lwall
+UPPER_WALLS ARG=fps.lp AT=6.5 KAPPA=55000 EXP=2 OFFSET=0 LABEL=uwalls
+
+PRINT STRIDE=100 ARG=fps.lp,cn,metad.bias FILE=colvar

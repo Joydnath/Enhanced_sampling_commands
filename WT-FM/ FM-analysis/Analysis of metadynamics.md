@@ -1,16 +1,14 @@
-_____________After metadynamics__________
+## 1. Are transitions rare and well separated?
+```bash
+awk '{print $1, $2}' colvar > transition_time.dat
+```
+Save the following script as a python file and run it.
 
-
-                
-        -----Are transitions rare and well separated?-----
-
->>  awk '{print $1, $2}' COLVAR > cv_time.dat   <<
-
-@@@
+```python
 import numpy as np
 import matplotlib.pyplot as plt
 
-t, s = np.loadtxt('cv_time.dat', unpack=True)
+t, s = np.loadtxt('transition_time.dat', unpack=True)
 plt.figure(figsize=(10,3))
 plt.plot(t, s, lw=0.8)
 plt.xlabel('Time (ps)')
@@ -18,15 +16,15 @@ plt.ylabel('s')
 plt.title('CV (s) vs Time')
 plt.tight_layout()
 plt.show()
-@@@
+```
 
+## 2. Was bias deposited during the transition? (mostly for iMetaD)
 
-
-        -----Was bias deposited during the transition?-----
-
->>  awk '{print $1, $4}' COLVAR > bias_time.dat  <<
-
-@@@
+```bash
+awk '{print $1, $4}' COLVAR > bias_time.dat  <<
+```
+Save the following script as a python file and run it.
+```python
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -38,14 +36,15 @@ plt.ylabel('Bias (kJ/mol)')
 plt.title('Bias deposition vs Time')
 plt.tight_layout()
 plt.show()
-@@@
+```
 
+## 3. Check whether a transition occurred (automatically)
 
-        -----Check whether a transition occurred (automatically)-----
+Save the following script as a python file and run it.
 
-@@@
+```python
 import numpy as np
-t, s = np.loadtxt('cv_time.dat', unpack=True)
+t, s = np.loadtxt('transition_time.dat', unpack=True) # from 1
 
 # Define dividing surface
 s_div = 3.5  # adjust depending on your system (midpoint between basins)
@@ -71,16 +70,16 @@ for ti, isinA in zip(t, inA):
 
 print("Detected transitions (ps):", trans_times)
 print("Number of transitions:", len(trans_times))
-@@@
+```
 
 
-        ----Combine bias & CV to check “bias during transition
+## 4. Combine bias & CV to check “bias during transition" (mostly for iMetaD)
 
-@@@
+Save the following script as a python file and run it.
+
+```python
 import matplotlib.pyplot as plt
-
-transition_times = [221970]
-
+transition_times = [10000] # manually put the time where transition occured 
 plt.figure()
 for tr in transition_times:
     plt.axvline(tr, color='r', ls='--')
@@ -88,26 +87,21 @@ for tr in transition_times:
 plt.xlim(0, max(transition_times) + 10)   # set visible range
 plt.ylim(0, 1)                             # needed for vertical lines!
 plt.show()
-
-@@@
-
+```
 
 
-
-
-
-
-
-
-        ----- Free energy surface -----
+# Free energy surface (2D/3D)
         
         
->>  plumed sum_hills --hills HILLS --outfile fes.dat --kt 2.494 <<
-   
+```bash
+plumed sum_hills --hills HILLS --outfile fes.dat --kt 2.494
+```   
         
-        ----- plotting 1D FES -----
+## 1D FES
+
+Save the following script as a python file and run it.
         
-@@@ 
+```python
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -126,16 +120,14 @@ plt.title("1D Free Energy Profile")
 plt.grid(True)
 plt.tight_layout()
 plt.show()
-@@@        
+```  
+    
         
-        
-        
-        
-        
-        
-        ----- Plotting 2D FES -----        
+## 2D FES      
 
-@@@
+Save the following script as a python file and run it
+
+```python
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -154,27 +146,4 @@ plt.ylabel('CV2 (z)')
 plt.title('Approximate Free Energy Surface')
 plt.colorbar(label='Free Energy (kJ/mol)')
 plt.show()
-@@@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
->> << means terminal commands 
-
-@@ @@ means python scripts
---- save all these python scripts in name.py file and run python3 name.py file
+```

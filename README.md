@@ -10,3 +10,4 @@ The folder contains files for funnel definition, Error and Solutions and necessa
 
 | FES_pub.py | Publication quality 2D FES, specifically for 2 CVs |
 
+| Analysis of metadynamics.md | For some advance investigation, e.g. bias deposition and transition periods etc. |

@@ -90,7 +90,7 @@ plt.show()
 ```
 
 
-# Free energy surface (2D/3D)
+# 5. Free energy surface
         
         
 ```bash
@@ -136,7 +136,6 @@ s1 = data[:,0]
 s2 = data[:,1]
 V  = data[:,2]
 
-# To plot a 2D FES (heatmap)
 import matplotlib.pyplot as plt
 from matplotlib import cm
 

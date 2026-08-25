@@ -8,25 +8,21 @@ Copy content from 3rd line of lig.gro to the conf.gro file up to the 2nd last li
 gmx editconf -f LIG.pdb -o LIG.gro
 gedit conf.gro LIG.gro
 ```
+Now, in topol.top file add the ligand itp file and add the ligand molecule number at the bottom
 
 ```bash
-gedit topol.top
-
 ; Include ligand topology 
 #include "LIG.itp"
-
-gedit topol.top
-LIG 1
 ```
 
 ```bash
-gmx editconf -f conf.gro -o box.gro -box 15 12 10 -bt triclinic
+gmx editconf -f conf.gro -o box.gro -box 10 -bt dodecahedron
 gmx solvate -cp box.gro -cs spc216.gro -p topol.top -o box_sol.gro
 
-gmx grompp -f ions.mdp -c box_sol.gro -p topol.top -o ION.tpr   
-gmx genion -s ION.tpr -p topol.top -conc 0.1 -neutral -o box_sol_ion.gro
+gmx grompp -f ions.mdp -c box_sol.gro -p topol.top -o ion.tpr   
+gmx genion -s ion.tpr -p topol.top -conc 0.1 -neutral -o box_sol_ion.gro
 
-gmx grompp -f EM.mdp -c box_sol_ion.gro -p topol.top -o em.tpr
+gmx grompp -f em.mdp -c box_sol_ion.gro -p topol.top -o em.tpr
 gmx mdrun -v -deffnm em
 ```
 *Make index files for lig posres*
@@ -50,8 +46,8 @@ gmx genrestr -f LIG.gro -n index_LIG.ndx -o posre_LIG.itp -fc 1000 1000 1000
 ```bash
 gmx make_ndx -f em.gro -o index.ndx
 ```
-```bash
 
+```bash
 gmx grompp -f nvt.mdp -c em.gro -r em.gro -p topol.top -n index.ndx -o nvt.tpr
 gmx mdrun -deffnm nvt -v
 
@@ -81,7 +77,6 @@ gmx grompp -f md_IE_total.mdp -c MD.gro -t MD.cpt -p topol.top -r MD.gro -n inde
 gmx mdrun -deffnm md_IE_total -rerun smd_center.xtc -nb cpu
 gmx energy -f md_IE_total.edr -o IE_total.xvg
 ```
-
 
 ## Restart run
 ```bash

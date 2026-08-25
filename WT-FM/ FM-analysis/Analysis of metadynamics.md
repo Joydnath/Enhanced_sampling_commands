@@ -21,7 +21,7 @@ plt.show()
 ## 2. Was bias deposited during the transition? (mostly for iMetaD)
 
 ```bash
-awk '{print $1, $4}' COLVAR > bias_time.dat  <<
+awk '{print $1, $4}' COLVAR > bias_time.dat 
 ```
 Save the following script as a python file and run it.
 ```python
